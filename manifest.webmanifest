@@ -1,18 +1,19 @@
 {
   "name": "VYRON - Daily Discipline Tracker",
   "short_name": "VYRON",
-  "description": "Track your daily progress, build discipline and make a comeback.",
+  "description": "A private, local-first tracker for daily discipline and consistency.",
   "id": "./",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
+  "lang": "en",
+  "categories": ["productivity", "lifestyle", "health"],
   "background_color": "#1a1a1a",
   "theme_color": "#1a1a1a",
   "icons": [
     { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
     { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
-    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }

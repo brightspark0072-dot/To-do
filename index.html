@@ -3,9 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; manifest-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
 <title>VYRON</title>
 <meta name="theme-color" content="#1a1a1a">
-<meta name="description" content="VYRON - track your daily discipline and make a comeback.">
+<meta name="color-scheme" content="dark">
+<meta name="description" content="VYRON - a private, local-first tracker for daily discipline and consistency.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -13,582 +16,208 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="VYRON">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<style>
-:root{
-  --bg:#121212; --card:#1c1c1e; --card2:#26262a; --line:#303034;
-  --text:#f2f2f3; --muted:#9a9aa3; --accent:#ff6b00; --accent2:#ff8f3d;
-  --good:#3ddc84; --bad:#ff5a5f; --radius:16px;
-}
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%}
-body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
-  display:flex;flex-direction:column;overflow:hidden;font-size:16px}
-header{padding:calc(14px + env(safe-area-inset-top)) 18px 10px;display:flex;align-items:center;gap:12px}
-header img{width:38px;height:38px;border-radius:10px}
-header h1{font-size:1.25rem;letter-spacing:.18em;font-weight:800}
-header .quote{font-size:.78rem;color:var(--muted);margin-top:2px}
-main{flex:1;overflow-y:auto;padding:0 16px 24px;-webkit-overflow-scrolling:touch}
-.tab{display:none}.tab.active{display:block}
-nav{display:flex;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
-nav button{flex:1;background:none;border:0;color:var(--muted);padding:10px 0 9px;font-size:.72rem;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer}
-nav button span{font-size:1.3rem;line-height:1}
-nav button.active{color:var(--accent)}
-.card{background:var(--card);border-radius:var(--radius);padding:16px;margin-bottom:14px;border:1px solid var(--line)}
-h2{font-size:1rem;margin-bottom:10px}
-.muted{color:var(--muted);font-size:.85rem}
-
-/* day nav */
-.daynav{display:flex;align-items:center;justify-content:space-between;margin:4px 0 14px}
-.daynav button{background:var(--card);border:1px solid var(--line);color:var(--text);width:40px;height:40px;border-radius:12px;font-size:1.1rem;cursor:pointer}
-.daynav button:disabled{opacity:.3}
-.daynav .d{text-align:center}
-.daynav .d b{display:block;font-size:1.05rem}
-.daynav .d small{color:var(--muted)}
-
-/* ring + stats */
-.hero{display:flex;align-items:center;gap:18px}
-.ring{position:relative;width:104px;height:104px;flex:none}
-.ring svg{transform:rotate(-90deg)}
-.ring .pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.4rem}
-.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;flex:1}
-.stat{background:var(--card2);border-radius:12px;padding:10px}
-.stat b{font-size:1.3rem;display:block}
-.stat small{color:var(--muted);font-size:.72rem}
-
-/* tasks */
-.group-title{font-size:.72rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin:16px 4px 8px}
-.task{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:8px}
-.task .chk{width:28px;height:28px;border-radius:9px;border:2px solid #555;background:none;flex:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#111;font-weight:900;font-size:1rem}
-.task.done .chk{background:var(--accent);border-color:var(--accent)}
-.task.avoid .chk{border-radius:50%}
-.task.avoid.done .chk{background:var(--good);border-color:var(--good)}
-.task .body{flex:1;min-width:0}
-.task .name{font-size:.97rem;overflow-wrap:anywhere}
-.task.done .name{color:var(--muted);text-decoration:line-through}
-.task .meta{font-size:.72rem;color:var(--muted);margin-top:2px}
-.tag{display:inline-block;padding:1px 8px;border-radius:99px;background:var(--card2);margin-right:6px;font-size:.68rem}
-.iconbtn{background:none;border:0;color:var(--muted);font-size:1.1rem;cursor:pointer;padding:6px}
-.empty{color:var(--muted);text-align:center;padding:18px;font-size:.9rem}
-
-.addrow{display:flex;gap:8px;margin-top:6px}
-input,select,textarea{background:var(--card2);color:var(--text);border:1px solid var(--line);border-radius:12px;padding:12px;font-size:1rem;width:100%;font-family:inherit}
-input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);border-color:transparent}
-.btn{background:var(--accent);color:#111;border:0;border-radius:12px;padding:12px 18px;font-weight:700;font-size:.95rem;cursor:pointer;white-space:nowrap}
-.btn.ghost{background:var(--card2);color:var(--text);border:1px solid var(--line)}
-.btn.danger{background:none;color:var(--bad);border:1px solid var(--bad)}
-.btn.block{width:100%}
-
-/* mood + note */
-.moods{display:flex;gap:8px;margin-bottom:10px}
-.moods button{flex:1;font-size:1.4rem;background:var(--card2);border:2px solid transparent;border-radius:12px;padding:8px 0;cursor:pointer}
-.moods button.sel{border-color:var(--accent)}
-
-/* progress */
-.bars{display:flex;align-items:flex-end;gap:8px;height:120px;margin-top:6px}
-.bar{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:5px}
-.bar i{width:100%;background:var(--accent);border-radius:6px 6px 3px 3px;min-height:3px;display:block}
-.bar.low i{background:#5a3a22}
-.bar small{font-size:.68rem;color:var(--muted)}
-.heat{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
-.heat div{aspect-ratio:1;border-radius:7px;background:var(--card2);font-size:.62rem;display:flex;align-items:center;justify-content:center;color:var(--muted)}
-.heat .l1{background:#4a2b12;color:#ccc}.heat .l2{background:#8a4710;color:#fff}.heat .l3{background:#d95f00;color:#fff}.heat .l4{background:var(--accent);color:#111}
-.heat .today{outline:2px solid var(--text)}
-.rank{display:flex;align-items:center;gap:10px;margin-bottom:9px;font-size:.88rem}
-.rank .n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.rank .track{width:90px;height:8px;background:var(--card2);border-radius:9px;overflow:hidden;flex:none}
-.rank .track i{display:block;height:100%;background:var(--accent)}
-.rank .v{width:38px;text-align:right;color:var(--muted);font-size:.78rem}
-
-/* modal */
-dialog{margin:auto auto 0;width:100%;max-width:520px;border:0;border-radius:22px 22px 0 0;background:var(--card);color:var(--text);padding:20px 18px calc(20px + env(safe-area-inset-bottom))}
-dialog::backdrop{background:rgba(0,0,0,.65)}
-dialog label{display:block;font-size:.78rem;color:var(--muted);margin:12px 0 5px}
-.row2{display:flex;gap:10px}.row2>*{flex:1}
-.seg{display:flex;background:var(--card2);border-radius:12px;padding:4px;gap:4px}
-.seg button{flex:1;border:0;background:none;color:var(--muted);padding:10px 6px;border-radius:9px;font-size:.85rem;cursor:pointer}
-.seg button.sel{background:var(--accent);color:#111;font-weight:700}
-.dlgfoot{display:flex;gap:10px;margin-top:18px}
-.dlgfoot .btn{flex:1}
-#toast{position:fixed;left:50%;bottom:calc(80px + env(safe-area-inset-bottom));transform:translate(-50%,20px);background:var(--accent);color:#111;padding:10px 18px;border-radius:99px;font-weight:700;font-size:.88rem;opacity:0;pointer-events:none;transition:.25s;max-width:90%;text-align:center}
-#toast.show{opacity:1;transform:translate(-50%,0)}
-</style>
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
+<a class="skip" href="#main">Skip to content</a>
 
 <header>
-  <img src="icon-192.png" alt="VYRON logo">
-  <div><h1>VYRON</h1><div class="quote" id="quote"></div></div>
+  <img src="icon-192.png" alt="" width="38" height="38">
+  <div><h1>VYRON</h1><p class="quote" id="quote"></p></div>
 </header>
 
-<main>
+<div id="banner" class="banner" role="alert" hidden></div>
+
+<main id="main" tabindex="-1">
+
   <!-- TODAY -->
-  <section id="tab-today" class="tab active">
+  <section id="tab-today" class="tab" aria-labelledby="nav-today">
     <div class="daynav">
-      <button id="prevDay" aria-label="Previous day">&#8249;</button>
+      <button id="prevDay" type="button" aria-label="Previous day">&#8249;</button>
       <div class="d"><b id="dayTitle"></b><small id="daySub"></small></div>
-      <button id="nextDay" aria-label="Next day">&#8250;</button>
+      <button id="nextDay" type="button" aria-label="Next day">&#8250;</button>
     </div>
+    <button id="jumpToday" class="btn ghost small" type="button" hidden>Back to today</button>
 
     <div class="card hero">
-      <div class="ring">
-        <svg width="104" height="104" viewBox="0 0 104 104">
+      <div class="ring" role="img" id="ring" aria-label="Progress">
+        <svg width="104" height="104" viewBox="0 0 104 104" aria-hidden="true">
           <circle cx="52" cy="52" r="44" fill="none" stroke="#303034" stroke-width="10"/>
-          <circle id="ringFg" cx="52" cy="52" r="44" fill="none" stroke="#ff6b00" stroke-width="10" stroke-linecap="round" stroke-dasharray="276.46" stroke-dashoffset="276.46" style="transition:stroke-dashoffset .5s"/>
+          <circle id="ringFg" cx="52" cy="52" r="44" fill="none" stroke="#ff6b00" stroke-width="10" stroke-linecap="round" stroke-dasharray="276.46" stroke-dashoffset="276.46"/>
         </svg>
-        <div class="pct" id="ringPct">0%</div>
+        <div class="pct" id="ringPct" aria-hidden="true">0%</div>
       </div>
       <div class="stats">
-        <div class="stat"><b id="stStreak">0</b><small>Day streak</small></div>
-        <div class="stat"><b id="stDone">0/0</b><small>Done today</small></div>
+        <div class="stat"><b id="stStreak">0</b><small>Current streak</small></div>
         <div class="stat"><b id="stBest">0</b><small>Best streak</small></div>
-        <div class="stat"><b id="stWeek">0%</b><small>Last 7 days</small></div>
+        <div class="stat"><b id="stCons">–</b><small>30-day consistency</small></div>
+        <div class="stat"><b id="stAvg">–</b><small>7-day average</small></div>
       </div>
     </div>
+    <p id="headline" class="headline"></p>
 
+    <details class="card rules">
+      <summary>How streaks and scores work</summary>
+      <ul>
+        <li>A day is a <b>success</b> when you finish at least <span id="ruleTh">70%</span> of its habits. Change this in More.</li>
+        <li><b>Today</b> is "in progress" until you reach the goal. It never breaks your streak.</li>
+        <li>A <b>missed</b> or <b>not-tracked</b> past day ends the current streak. Your <b>best streak</b> is always kept.</li>
+        <li>A <b>rest day</b> pauses everything: it neither breaks nor adds to a streak and is left out of the scores.</li>
+        <li><b>Consistency</b> = successful days &divide; (successful + missed + not-tracked) over the last 30 finished days since you started.</li>
+        <li>The <b>7-day average</b> uses the last 7 finished days. Days you forgot to track count as 0%, so the number stays honest.</li>
+        <li>One bad day is just one day. Look at consistency, not only the streak.</li>
+      </ul>
+    </details>
+
+    <div id="dayStatus" class="status" hidden></div>
     <div id="todayList"></div>
 
-    <div class="group-title">Add a one-time task for this day</div>
+    <h2 class="group-title" id="extraTitle">One-time task for this day</h2>
     <div class="addrow">
-      <input id="extraInput" placeholder="e.g. Finish chapter 3 notes" maxlength="80">
-      <button class="btn" id="extraAdd">Add</button>
+      <label class="sr" for="extraInput">One-time task name</label>
+      <input id="extraInput" placeholder="e.g. Finish chapter 3 notes" maxlength="80" autocomplete="off">
+      <button class="btn" id="extraAdd" type="button">Add</button>
     </div>
 
-    <div class="group-title">End of day check-in</div>
+    <h2 class="group-title">Check-in</h2>
     <div class="card">
-      <div class="moods" id="moods">
-        <button data-m="1">😞</button><button data-m="2">😕</button><button data-m="3">😐</button><button data-m="4">🙂</button><button data-m="5">😄</button>
-      </div>
-      <textarea id="note" rows="3" placeholder="What went well? What pulled me off track? What will I do differently tomorrow?"></textarea>
+      <div class="moods" id="moods" role="group" aria-label="Mood for this day"></div>
+      <label class="sr" for="note">Note for this day</label>
+      <textarea id="note" rows="3" maxlength="2000" placeholder="What went well? What pulled me off track? What will I do differently tomorrow?"></textarea>
+      <label class="check"><input type="checkbox" id="restToggle"> <span>Rest day (pauses the streak instead of breaking it)</span></label>
     </div>
   </section>
 
   <!-- ROUTINE -->
-  <section id="tab-routine" class="tab">
-    <div class="card" style="margin-top:6px">
+  <section id="tab-routine" class="tab" aria-labelledby="nav-routine" hidden>
+    <div class="card">
       <h2>My daily routine</h2>
-      <p class="muted">These repeat every day. Tap a task to edit it. <b>Do</b> tasks are things to do; <b>Avoid</b> tasks are habits to resist (tick them when you stayed strong).</p>
+      <p class="muted"><b>Do</b> habits are things to do. <b>Avoid</b> habits are things to resist: tick them when you held strong. Changes apply from today; past days keep what they were.</p>
     </div>
-    <button class="btn block" id="newTask">+ New daily task</button>
-    <div id="routineList" style="margin-top:14px"></div>
+    <div class="row2">
+      <button class="btn" id="newTask" type="button">+ New habit</button>
+      <button class="btn ghost" id="sortTime" type="button">Sort by time</button>
+    </div>
+    <div id="routineList" class="list"></div>
+    <details class="card archived" id="archivedBox" hidden>
+      <summary>Archived habits (<span id="archivedCount">0</span>)</summary>
+      <div id="archivedList" class="list"></div>
+    </details>
   </section>
 
   <!-- PROGRESS -->
-  <section id="tab-progress" class="tab">
-    <div class="card" style="margin-top:6px">
+  <section id="tab-progress" class="tab" aria-labelledby="nav-progress" hidden>
+    <div class="card">
       <h2>Last 7 days</h2>
       <div class="bars" id="bars"></div>
+      <p class="muted" id="trendText"></p>
     </div>
     <div class="card">
-      <h2>Last 35 days</h2>
-      <div class="heat" id="heat"></div>
-      <p class="muted" style="margin-top:10px">Brighter = more of your plan completed. A day counts toward your streak at 70% or more.</p>
+      <div class="calhead">
+        <button id="calPrev" type="button" aria-label="Previous month">&#8249;</button>
+        <h2 id="calTitle" aria-live="polite"></h2>
+        <button id="calNext" type="button" aria-label="Next month">&#8250;</button>
+      </div>
+      <div class="dow" aria-hidden="true"><span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span></div>
+      <div class="cal" id="cal"></div>
+      <p class="muted" id="calStats"></p>
+      <ul class="legend">
+        <li><span class="sw s-success"></span>Goal reached ✓</li>
+        <li><span class="sw s-failed"></span>Missed ✕</li>
+        <li><span class="sw s-rest"></span>Rest ◦</li>
+        <li><span class="sw s-progress"></span>In progress …</li>
+        <li><span class="sw s-untracked"></span>Not tracked</li>
+      </ul>
     </div>
     <div class="card">
-      <h2>Habit consistency (30 days)</h2>
+      <h2>Mood, last 14 days</h2>
+      <div class="moodrow" id="moodRow"></div>
+    </div>
+    <div class="card">
+      <h2>Habit consistency, last 30 days</h2>
       <div id="ranks"></div>
     </div>
   </section>
 
-  <!-- SETTINGS -->
-  <section id="tab-more" class="tab">
-    <div class="card" style="margin-top:6px">
+  <!-- MORE -->
+  <section id="tab-more" class="tab" aria-labelledby="nav-more" hidden>
+    <div class="card">
       <h2>Backup</h2>
-      <p class="muted" style="margin-bottom:12px">Your data is stored only on this device. Export a backup now and then.</p>
+      <p class="muted" id="backupInfo"></p>
       <div class="row2">
-        <button class="btn ghost" id="exportBtn">Export</button>
-        <button class="btn ghost" id="importBtn">Import</button>
+        <button class="btn ghost" id="exportBtn" type="button">Export backup</button>
+        <button class="btn ghost" id="importBtn" type="button">Import backup</button>
       </div>
-      <input type="file" id="importFile" accept="application/json" hidden>
+      <button class="btn ghost block" id="undoImport" type="button" hidden>Restore data from before the last import/reset</button>
+      <input type="file" id="importFile" accept="application/json,.json" hidden>
     </div>
     <div class="card">
-      <h2>Streak goal</h2>
-      <label class="muted" for="threshold">A day counts when I complete at least</label>
-      <select id="threshold" style="margin-top:6px">
-        <option value="0.5">50% of my plan</option>
-        <option value="0.7">70% of my plan</option>
-        <option value="0.9">90% of my plan</option>
-        <option value="1">100% of my plan</option>
+      <h2>Your data and privacy</h2>
+      <p class="muted">Everything stays on this device. VYRON has no account, no server and no tracking. Data lives in your browser's local storage, which is <b>not encrypted</b> and can be erased if you clear site data, uninstall the browser or switch phones. <b>Export a backup regularly</b> and keep it somewhere private. <span id="persistInfo"></span></p>
+    </div>
+    <div class="card">
+      <h2>Daily goal</h2>
+      <label class="muted" for="threshold">A day counts as successful when I complete at least</label>
+      <select id="threshold">
+        <option value="0.5">50% of my habits</option>
+        <option value="0.7">70% of my habits</option>
+        <option value="0.9">90% of my habits</option>
+        <option value="1">100% of my habits</option>
       </select>
     </div>
     <div class="card">
       <h2>Reset</h2>
-      <button class="btn danger block" id="resetRoutine">Restore the starter routine</button>
-      <button class="btn danger block" id="wipeAll" style="margin-top:10px">Erase all data</button>
+      <button class="btn danger block" id="resetRoutine" type="button">Replace routine with the starter routine</button>
+      <button class="btn danger block" id="wipeAll" type="button">Erase all VYRON data</button>
     </div>
-    <p class="muted" style="text-align:center;margin:10px 0 0">VYRON · small wins, every day.</p>
+    <p class="muted center">VYRON v2 · small wins, every day.</p>
   </section>
 </main>
 
-<nav>
-  <button data-tab="today" class="active"><span>✅</span>Today</button>
-  <button data-tab="routine"><span>🗂️</span>Routine</button>
-  <button data-tab="progress"><span>📈</span>Progress</button>
-  <button data-tab="more"><span>⚙️</span>More</button>
+<nav aria-label="Main">
+  <button id="nav-today" data-tab="today" type="button" aria-current="page"><span aria-hidden="true">✅</span>Today</button>
+  <button id="nav-routine" data-tab="routine" type="button"><span aria-hidden="true">🗂️</span>Routine</button>
+  <button id="nav-progress" data-tab="progress" type="button"><span aria-hidden="true">📈</span>Progress</button>
+  <button id="nav-more" data-tab="more" type="button"><span aria-hidden="true">⚙️</span>More</button>
 </nav>
 
-<!-- Task editor -->
-<dialog id="dlg">
-  <h2 id="dlgTitle">New task</h2>
-  <label for="fName">Task</label>
-  <input id="fName" maxlength="80" placeholder="e.g. Walk to the station">
-  <label>Type</label>
-  <div class="seg" id="fType"><button data-v="do" class="sel">Do this</button><button data-v="avoid">Avoid this</button></div>
+<!-- Habit editor -->
+<dialog id="dlg" aria-labelledby="dlgTitle">
+  <h2 id="dlgTitle">New habit</h2>
+  <p id="fError" class="err" role="alert" hidden></p>
+  <label for="fName">Habit</label>
+  <input id="fName" maxlength="80" placeholder="e.g. Walk to the station" autocomplete="off">
+  <fieldset class="seg">
+    <legend>Type</legend>
+    <label><input type="radio" name="ftype" value="do" checked><span>Do this</span></label>
+    <label><input type="radio" name="ftype" value="avoid"><span>Avoid this</span></label>
+  </fieldset>
   <div class="row2">
     <div><label for="fTime">Time (optional)</label><input type="time" id="fTime"></div>
     <div><label for="fCat">Category</label>
-      <select id="fCat">
-        <option>Body</option><option>Mind</option><option>Study</option><option>Family</option><option>Detox</option><option>Other</option>
-      </select></div>
+      <select id="fCat"><option>Body</option><option>Mind</option><option>Study</option><option>Family</option><option>Detox</option><option>Other</option></select></div>
   </div>
-  <div class="dlgfoot">
-    <button class="btn danger" id="fDelete" style="flex:0 0 auto">Delete</button>
-    <button class="btn ghost" id="fCancel">Cancel</button>
-    <button class="btn" id="fSave">Save</button>
+  <div class="dlgfoot wrap">
+    <button class="btn ghost" id="fArchive" type="button">Archive</button>
+    <button class="btn danger" id="fDelete" type="button">Delete</button>
+    <button class="btn ghost" id="fCancel" type="button">Cancel</button>
+    <button class="btn" id="fSave" type="button">Save</button>
   </div>
 </dialog>
 
-<div id="toast"></div>
+<!-- Message / confirm -->
+<dialog id="msg" aria-labelledby="msgTitle">
+  <h2 id="msgTitle"></h2>
+  <p id="msgText" class="muted"></p>
+  <ul id="msgList" class="errlist" hidden></ul>
+  <div class="dlgfoot">
+    <button class="btn ghost" id="msgCancel" type="button">Cancel</button>
+    <button class="btn" id="msgOk" type="button">OK</button>
+  </div>
+</dialog>
 
-<script>
-(() => {
-'use strict';
-const KEY = 'vyron.v1';
-const $ = s => document.querySelector(s);
-const uid = () => Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-4);
-
-/* ---------- starter routine (based on your own day) ---------- */
-const STARTER = () => [
-  {name:'Wake up by 7:30, no phone for the first 30 min', time:'07:30', cat:'Body', type:'do'},
-  {name:'No scrolling in the morning', time:'08:00', cat:'Detox', type:'avoid'},
-  {name:'Pre-read today\'s class topic (15 min)', time:'09:30', cat:'Study', type:'do'},
-  {name:'Attend class with notes, phone in bag', time:'10:30', cat:'Study', type:'do'},
-  {name:'Revise class notes within 1 hour of getting home', time:'13:00', cat:'Study', type:'do'},
-  {name:'No movie / reels in the afternoon', time:'14:00', cat:'Detox', type:'avoid'},
-  {name:'Evening walk to the station', time:'17:00', cat:'Body', type:'do'},
-  {name:'Deep study on laptop (1 hour, phone away)', time:'19:00', cat:'Study', type:'do'},
-  {name:'Talk with mom', time:'21:30', cat:'Family', type:'do'},
-  {name:'No scrolling after dinner', time:'22:00', cat:'Detox', type:'avoid'},
-  {name:'Stayed strong against late-night urges', time:'23:00', cat:'Detox', type:'avoid'},
-  {name:'Phone away and in bed by 11:30', time:'23:30', cat:'Body', type:'do'}
-].map(t => ({id: uid(), ...t, deleted:false}));
-
-const QUOTES = [
-  'Small wins, every day.',
-  'Discipline is choosing what you want most over what you want now.',
-  'Don\'t break the chain.',
-  'You are one decision away from a different day.',
-  'Progress, not perfection.',
-  'Be stronger than your strongest excuse.'
-];
-
-/* ---------- state ---------- */
-let S = load();
-function load(){
-  try{
-    const raw = localStorage.getItem(KEY);
-    if(raw){ const o = JSON.parse(raw); if(o && o.routine) return o; }
-  }catch(e){}
-  return {routine: STARTER(), days:{}, threshold:0.7};
-}
-function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){ toast('Could not save (storage full or blocked)'); } }
-
-/* ---------- date helpers ---------- */
-const pad = n => String(n).padStart(2,'0');
-const keyOf = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-const fromKey = k => { const [y,m,d] = k.split('-').map(Number); return new Date(y, m-1, d); };
-const addDays = (k, n) => { const d = fromKey(k); d.setDate(d.getDate()+n); return keyOf(d); };
-let todayKey = keyOf(new Date());
-let viewKey = todayKey;
-
-/* ---------- day model ----------
-   day = { ids:[routine ids snapshot], done:{id:true}, extras:[{id,name,done}], mood, note }  */
-const live = () => S.routine.filter(t => !t.deleted);
-const byId = id => S.routine.find(t => t.id === id);
-
-function ensureDay(k){
-  let d = S.days[k];
-  if(!d){ d = S.days[k] = {ids: live().map(t => t.id), done:{}, extras:[], mood:0, note:''}; }
-  return d;
-}
-// For viewing a day without creating data: past days with no record just show current routine
-function peekDay(k){
-  return S.days[k] || {ids: k >= todayKey ? live().map(t=>t.id) : [], done:{}, extras:[], mood:0, note:''};
-}
-function dayItems(k){
-  const d = peekDay(k);
-  const items = [];
-  d.ids.forEach(id => { const t = byId(id); if(t) items.push({kind:'routine', id, t, done: !!d.done[id]}); });
-  d.extras.forEach(e => items.push({kind:'extra', id:e.id, t:{name:e.name, type:'do', cat:'One-time', time:''}, done: !!e.done}));
-  return items;
-}
-function dayPct(k){
-  const items = dayItems(k); if(!items.length) return null;
-  return items.filter(i => i.done).length / items.length;
-}
-const hasRecord = k => !!S.days[k] && dayItems(k).length > 0;
-
-function streaks(){
-  const th = S.threshold || 0.7;
-  // current streak: count back from today (today may still be in progress)
-  let cur = 0, k = todayKey;
-  const pt = dayPct(k);
-  if(pt !== null && pt >= th) cur++;
-  k = addDays(k, -1);
-  while(true){
-    const p = hasRecord(k) ? dayPct(k) : null;
-    if(p !== null && p >= th){ cur++; k = addDays(k,-1); } else break;
-  }
-  // best streak
-  const keys = Object.keys(S.days).sort();
-  let best = 0, run = 0, prev = null;
-  keys.forEach(kk => {
-    const p = dayPct(kk);
-    const ok = p !== null && p >= th;
-    if(ok){ run = (prev && addDays(prev,1) === kk && run>0) ? run+1 : 1; best = Math.max(best, run); prev = kk; }
-    else { run = 0; prev = null; }
-  });
-  return {cur, best: Math.max(best, cur)};
-}
-function weekAvg(){
-  let sum = 0, n = 0;
-  for(let i=0;i<7;i++){ const k = addDays(todayKey,-i); const p = (i===0||hasRecord(k)) ? dayPct(k) : null; if(p!==null){sum+=p;n++;} }
-  return n ? Math.round(sum/n*100) : 0;
-}
-
-/* ---------- toast ---------- */
-let tt;
-function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(tt); tt=setTimeout(()=>t.classList.remove('show'),1800); }
-
-/* ---------- render: today ---------- */
-function fmtTime(t){ if(!t) return ''; const [h,m]=t.split(':').map(Number); return `${((h+11)%12)+1}:${pad(m)} ${h<12?'AM':'PM'}`; }
-function el(tag, cls, text){ const e=document.createElement(tag); if(cls) e.className=cls; if(text!==undefined) e.textContent=text; return e; }
-
-function renderToday(){
-  const isToday = viewKey === todayKey;
-  const d = fromKey(viewKey);
-  $('#dayTitle').textContent = isToday ? 'Today' : (viewKey === addDays(todayKey,-1) ? 'Yesterday' : d.toLocaleDateString(undefined,{weekday:'long'}));
-  $('#daySub').textContent = d.toLocaleDateString(undefined,{day:'numeric',month:'long',year:'numeric'});
-  $('#nextDay').disabled = viewKey >= todayKey;
-
-  const items = dayItems(viewKey);
-  const done = items.filter(i=>i.done).length;
-  const pct = items.length ? Math.round(done/items.length*100) : 0;
-  $('#ringPct').textContent = pct + '%';
-  $('#ringFg').style.strokeDashoffset = 276.46 * (1 - pct/100);
-  $('#stDone').textContent = `${done}/${items.length}`;
-  const st = streaks();
-  $('#stStreak').textContent = st.cur; $('#stBest').textContent = st.best;
-  $('#stWeek').textContent = weekAvg() + '%';
-
-  const list = $('#todayList'); list.replaceChildren();
-  if(!items.length){
-    list.append(el('div','empty', viewKey < todayKey ? 'Nothing was tracked on this day.' : 'No tasks yet. Add some in the Routine tab.'));
-  } else {
-    const sorted = items.slice().sort((a,b)=>{
-      if(a.kind!==b.kind) return a.kind==='extra' ? 1 : -1;
-      return (a.t.time||'99:99').localeCompare(b.t.time||'99:99');
-    });
-    const routine = sorted.filter(i=>i.kind==='routine'), extras = sorted.filter(i=>i.kind==='extra');
-    if(routine.length){ list.append(el('div','group-title','Daily plan')); routine.forEach(i=>list.append(taskRow(i))); }
-    if(extras.length){ list.append(el('div','group-title','One-time tasks')); extras.forEach(i=>list.append(taskRow(i))); }
-  }
-
-  const d2 = peekDay(viewKey);
-  document.querySelectorAll('#moods button').forEach(b=>b.classList.toggle('sel', +b.dataset.m === d2.mood));
-  const noteEl = $('#note'); if(document.activeElement !== noteEl) noteEl.value = d2.note || '';
-  $('#extraInput').closest('.addrow').previousElementSibling.style.display = '';
-}
-
-function taskRow(i){
-  const row = el('div', 'task' + (i.done?' done':'') + (i.t.type==='avoid'?' avoid':''));
-  const chk = el('button','chk', i.done ? '✓' : ''); chk.setAttribute('aria-label','toggle');
-  chk.onclick = () => toggle(i);
-  const body = el('div','body'); body.append(el('div','name', i.t.name));
-  const meta = el('div','meta');
-  if(i.t.type==='avoid') meta.append(el('span','tag','Avoid'));
-  if(i.kind==='extra') meta.append(el('span','tag','One-time'));
-  else if(i.t.cat) meta.append(el('span','tag', i.t.cat));
-  if(i.t.time) meta.append(document.createTextNode(fmtTime(i.t.time)));
-  body.append(meta);
-  row.append(chk, body);
-  if(i.kind==='extra'){
-    const x = el('button','iconbtn','✕'); x.setAttribute('aria-label','remove');
-    x.onclick = () => { const d=ensureDay(viewKey); d.extras = d.extras.filter(e=>e.id!==i.id); save(); renderAll(); };
-    row.append(x);
-  } else {
-    const ed = el('button','iconbtn','✎'); ed.setAttribute('aria-label','edit'); ed.onclick = () => openEditor(i.id);
-    row.append(ed);
-  }
-  return row;
-}
-
-function toggle(i){
-  const d = ensureDay(viewKey);
-  if(i.kind==='routine'){ d.done[i.id] = !d.done[i.id]; if(!d.done[i.id]) delete d.done[i.id]; }
-  else { const e = d.extras.find(x=>x.id===i.id); if(e) e.done = !e.done; }
-  save(); renderAll();
-  if(dayPct(viewKey) === 1 && dayItems(viewKey).length) toast('Perfect day! 🔥');
-}
-
-/* ---------- today: extras / mood / note ---------- */
-function addExtra(){
-  const inp = $('#extraInput'); const v = inp.value.trim(); if(!v) return;
-  ensureDay(viewKey).extras.push({id:uid(), name:v, done:false});
-  inp.value=''; save(); renderAll();
-}
-$('#extraAdd').onclick = addExtra;
-$('#extraInput').addEventListener('keydown', e => { if(e.key==='Enter') addExtra(); });
-$('#moods').onclick = e => { const b=e.target.closest('button'); if(!b) return; const d=ensureDay(viewKey); d.mood = d.mood===+b.dataset.m ? 0 : +b.dataset.m; save(); renderToday(); };
-$('#note').addEventListener('input', e => { ensureDay(viewKey).note = e.target.value; save(); });
-$('#prevDay').onclick = () => { viewKey = addDays(viewKey,-1); renderToday(); };
-$('#nextDay').onclick = () => { if(viewKey<todayKey){ viewKey = addDays(viewKey,1); renderToday(); } };
-
-/* ---------- routine tab ---------- */
-function renderRoutine(){
-  const list = $('#routineList'); list.replaceChildren();
-  const items = live().slice().sort((a,b)=>(a.time||'99:99').localeCompare(b.time||'99:99'));
-  if(!items.length){ list.append(el('div','empty','No daily tasks. Tap "New daily task" to add one.')); return; }
-  items.forEach(t=>{
-    const row = el('div','task' + (t.type==='avoid'?' avoid':''));
-    row.style.cursor='pointer';
-    const body = el('div','body'); body.append(el('div','name',t.name));
-    const meta = el('div','meta');
-    meta.append(el('span','tag', t.type==='avoid'?'Avoid':'Do'));
-    meta.append(el('span','tag', t.cat||'Other'));
-    if(t.time) meta.append(document.createTextNode(fmtTime(t.time)));
-    body.append(meta); row.append(body, el('span','iconbtn','✎'));
-    row.onclick = () => openEditor(t.id);
-    list.append(row);
-  });
-}
-
-/* ---------- editor dialog ---------- */
-const dlg = $('#dlg'); let editingId = null, fType = 'do';
-function setType(v){ fType=v; document.querySelectorAll('#fType button').forEach(b=>b.classList.toggle('sel', b.dataset.v===v)); }
-document.querySelectorAll('#fType button').forEach(b=>b.onclick=()=>setType(b.dataset.v));
-function openEditor(id){
-  editingId = id || null;
-  const t = id ? byId(id) : null;
-  $('#dlgTitle').textContent = t ? 'Edit task' : 'New daily task';
-  $('#fName').value = t ? t.name : '';
-  $('#fTime').value = t ? (t.time||'') : '';
-  $('#fCat').value = t ? (t.cat||'Other') : 'Study';
-  setType(t ? t.type : 'do');
-  $('#fDelete').style.display = t ? '' : 'none';
-  dlg.showModal();
-  if(!t) setTimeout(()=>$('#fName').focus(),50);
-}
-$('#newTask').onclick = () => openEditor(null);
-$('#fCancel').onclick = () => dlg.close();
-$('#fSave').onclick = () => {
-  const name = $('#fName').value.trim(); if(!name){ $('#fName').focus(); return; }
-  const data = {name, time:$('#fTime').value, cat:$('#fCat').value, type:fType};
-  if(editingId){ Object.assign(byId(editingId), data); }
-  else {
-    const t = {id:uid(), ...data, deleted:false}; S.routine.push(t);
-    // a new task also shows up on today's list right away
-    if(S.days[todayKey]) S.days[todayKey].ids.push(t.id);
-  }
-  save(); dlg.close(); renderAll(); toast(editingId ? 'Task updated' : 'Task added');
-};
-$('#fDelete').onclick = () => {
-  if(!editingId || !confirm('Delete this task from your daily routine? Past history is kept.')) return;
-  const t = byId(editingId); t.deleted = true;
-  // remove from today's list only (past days keep it)
-  const d = S.days[todayKey]; if(d){ d.ids = d.ids.filter(i=>i!==editingId); delete d.done[editingId]; }
-  save(); dlg.close(); renderAll(); toast('Task deleted');
-};
-
-/* ---------- progress ---------- */
-function renderProgress(){
-  const bars = $('#bars'); bars.replaceChildren();
-  for(let i=6;i>=0;i--){
-    const k = addDays(todayKey,-i); const p = (i===0||hasRecord(k)) ? dayPct(k) : null; const v = p==null?0:p;
-    const b = el('div','bar' + (v < (S.threshold||.7) ? ' low':''));
-    const bar = el('i'); bar.style.height = Math.max(3, v*100) + '%'; bar.title = Math.round(v*100)+'%';
-    b.append(bar, el('small','', fromKey(k).toLocaleDateString(undefined,{weekday:'narrow'})));
-    bars.append(b);
-  }
-  const heat = $('#heat'); heat.replaceChildren();
-  const start = addDays(todayKey,-34);
-  const lead = fromKey(start).getDay(); // align to weekday columns (Sun first)
-  for(let i=0;i<lead;i++) heat.append(el('div'));
-  for(let i=0;i<35;i++){
-    const k = addDays(start,i); const p = (k===todayKey||hasRecord(k)) ? dayPct(k) : null;
-    const c = el('div','', fromKey(k).getDate());
-    if(p!=null){ c.classList.add(p>=.9?'l4':p>=.7?'l3':p>=.4?'l2':p>0?'l1':'x'); }
-    if(k===todayKey) c.classList.add('today');
-    heat.append(c);
-  }
-  const ranks = $('#ranks'); ranks.replaceChildren();
-  const stats = live().map(t=>{
-    let tot=0, ok=0;
-    for(let i=0;i<30;i++){ const k=addDays(todayKey,-i); const d=S.days[k]; if(d && d.ids.includes(t.id)){ tot++; if(d.done[t.id]) ok++; } }
-    return {t, tot, ok, pct: tot? ok/tot : 0};
-  }).filter(s=>s.tot>0).sort((a,b)=>b.pct-a.pct);
-  if(!stats.length){ ranks.append(el('div','empty','Complete some tasks and your stats will show up here.')); return; }
-  stats.forEach(s=>{
-    const r = el('div','rank'); r.append(el('div','n',s.t.name));
-    const tr = el('div','track'); const f = el('i'); f.style.width = Math.round(s.pct*100)+'%'; tr.append(f);
-    r.append(tr, el('div','v', Math.round(s.pct*100)+'%')); ranks.append(r);
-  });
-}
-
-/* ---------- more ---------- */
-$('#threshold').value = String(S.threshold || 0.7);
-$('#threshold').onchange = e => { S.threshold = +e.target.value; save(); renderAll(); };
-$('#exportBtn').onclick = () => {
-  const blob = new Blob([JSON.stringify(S,null,2)], {type:'application/json'});
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-  a.download = `vyron-backup-${todayKey}.json`; document.body.append(a); a.click(); a.remove();
-  setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
-};
-$('#importBtn').onclick = () => $('#importFile').click();
-$('#importFile').onchange = async e => {
-  const f = e.target.files[0]; if(!f) return;
-  try{
-    const o = JSON.parse(await f.text());
-    if(!o || !Array.isArray(o.routine) || typeof o.days !== 'object') throw 0;
-    if(!confirm('Replace all current data with this backup?')) return;
-    S = o; if(!S.threshold) S.threshold = .7; save(); $('#threshold').value = String(S.threshold); renderAll(); toast('Backup restored');
-  }catch(_){ toast('That file is not a valid VYRON backup'); }
-  e.target.value='';
-};
-$('#resetRoutine').onclick = () => {
-  if(!confirm('Replace your routine with the starter routine? Past history is kept.')) return;
-  S.routine.forEach(t=>t.deleted=true); S.routine.push(...STARTER());
-  if(S.days[todayKey]){ S.days[todayKey].ids = live().map(t=>t.id); S.days[todayKey].done = {}; }
-  save(); renderAll(); toast('Starter routine restored');
-};
-$('#wipeAll').onclick = () => {
-  if(!confirm('Erase ALL VYRON data on this device? This cannot be undone.')) return;
-  S = {routine: STARTER(), days:{}, threshold:.7}; save(); renderAll(); toast('Data erased');
-};
-
-/* ---------- tabs ---------- */
-document.querySelectorAll('nav button').forEach(b => b.onclick = () => {
-  document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active', x===b));
-  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.id==='tab-'+b.dataset.tab));
-  $('main').scrollTop = 0; renderAll();
-});
-
-function renderAll(){ renderToday(); renderRoutine(); renderProgress(); }
-
-/* ---------- midnight rollover & startup ---------- */
-function rollover(){
-  const k = keyOf(new Date());
-  if(k !== todayKey){ const wasToday = viewKey === todayKey; todayKey = k; if(wasToday) viewKey = k; }
-  ensureDay(todayKey); save(); renderAll();
-}
-document.addEventListener('visibilitychange', () => { if(!document.hidden) rollover(); });
-setInterval(rollover, 60000);
-$('#quote').textContent = QUOTES[Math.floor(Date.now()/864e5) % QUOTES.length];
-rollover();
-
-if('serviceWorker' in navigator){
-  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{}));
-}
-})();
-</script>
+<div id="toast" role="status" aria-live="polite"></div>
+<script src="core.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
